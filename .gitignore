@@ -1,0 +1,6 @@
+# Ignore the .vscode directory
+.vscode/
+
+
+# For local testing only
+/local_only
