@@ -54,17 +54,37 @@ def craft_proxy_request(original_url, **kwargs):
         return requests.get(original_url, timeout=timeout, **kwargs)
 
 
+
 def msg_string_format(list):
     """
     Takes list of readings. Format value to two decimal points.
     If the value is equal to "no data", it means that there were no values to read.
     """
+
+    norms = {
+    "PM10" : 50,
+    "PM2.5" : 20,
+    "CO" : 10000,
+    "SO2" : 350,
+    "NO2" : 200,
+    "C6H6" : 5,
+    "O3" : 120
+}
+    
     raw_string = ""
-    for i in list:
-        if i["value"] == "no data":
-            raw_string = raw_string + f'{i["key"]} : {i["value"]}' + "\n"
+    max_key_length = max(len(dict["key"]) for dict in list)
+    max_value_length = max(len(str(dict["value"])) for dict in list)
+
+    for dict in list:
+        key = dict["key"]
+        value = dict["value"]
+
+        if value == "no data":
+            raw_string += f'{key.ljust(max_key_length)} : {"no data".ljust(max_value_length)}' + "\n"
         else:
-            raw_string = raw_string + f'{i["key"]} : {i["value"]:.2f}' + "\n"
+            value2f = f'{value:.1f}'
+            raw_string += f'{key.ljust(max_key_length)} : {value2f.ljust(max_value_length)} : {(value/norms[key]*100):.0f}%' + "\n"
+    
     return raw_string
 
 
@@ -246,8 +266,8 @@ def types(message):
         "PM10 - particulate matter 10, inhalable particles, with diameters that are generally 10 micrometers and smaller; norm: 50 μg/m3/year\n\n\
 PM2.5 - particulate matter 2.5 fine inhalable particles, with diameters that are generally 2.5 micrometers and smaller; norm 20 μg/m3/year\n\n\
 CO - carbon monoxide; norm: 10 000 μg/m3/8 hour\n\n\
-SO2 - sulfur dioxide; norm: 125 μg/m3/day\n\n\
-NO2 - nitrogen dioxide; norm: 40 μg/m3/year\n\n\
+SO2 - sulfur dioxide; norm: 350 μg/m3/1 hour\n\n\
+NO2 - nitrogen dioxide; norm: 200 μg/m3/1 hour\n\n\
 C6H6 - benzene; norm: 5 μg/m3/year\n\n\
 O3 - ozone; norm: 120 μg/m3/8 hour\n\n\
 Norms: Polish Chief Inspectorate for Environmental Protection; www.gios.gov.pl\n\n\
@@ -285,6 +305,7 @@ def all(message):
             for part in long_msg(all_stations_string):
                 bot.reply_to(message, part)
 
+
 @bot.message_handler(func=air_command_test)
 def air(message):
     # Sending a "typing" "animation" during the process.
@@ -317,7 +338,15 @@ def air(message):
             bot.reply_to(message, "Redings are empty.")
         # Send message with formatted readings.
         else:
-            bot.reply_to(message, f"{station_name}\n{msg_string_format(readings)}")
+            html_message = (
+                f"{station_name}\n"
+                f"<pre>{msg_string_format(readings)}</pre>"
+            )
+
+            bot.reply_to(
+                message,
+                html_message, parse_mode='HTML')
+
 
 @bot.message_handler(func=loc_command_test)
 def loc(message):
@@ -367,11 +396,17 @@ def loc(message):
             bot.reply_to(message, "Redings are empty.")
         # Send message with formatted readings.
         else:
-            bot.reply_to(
-                message,
-                f"{station_name}\ndistance: {closest_station_distance} km\n{msg_string_format(readings)}",
+            html_message = (
+                f"{station_name}\n"
+                f"ID: {closest_station_id}\n"
+                f"Distance: {closest_station_distance} km\n"
+                f"<pre>{msg_string_format(readings)}</pre>"
             )
 
+            bot.reply_to(
+                message,
+                html_message, parse_mode='HTML')
+             
 
 @bot.message_handler(content_types=["location"])
 def handle_location(message):
@@ -404,9 +439,16 @@ def handle_location(message):
             bot.reply_to(message, "Redings are empty.")
         # Send message with formatted readings.
         else:
+            html_message = (
+                f"{station_name}\n"
+                f"ID: {closest_station_id}\n"
+                f"Distance: {closest_station_distance} km\n"
+                f"<pre>{msg_string_format(readings)}</pre>"
+            )
+            
             bot.reply_to(
                 message,
-                f"{station_name}\ndistance: {closest_station_distance} km\n{msg_string_format(readings)}")
+                html_message, parse_mode='HTML')
 
 
 # If all handles above do not fit, help_message will be displayed.
