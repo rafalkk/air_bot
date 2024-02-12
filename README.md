@@ -1,10 +1,10 @@
-# Air Bot PL
+## Air Bot PL
 
-## Introduction
+### Introduction
 
 Air Bot PL is a Telegram bot that provides air quality information based on data from the Polish Chief Inspectorate for Environmental Protection ([GIOS](https://powietrze.gios.gov.pl/pjp/home?lang=en)). It is written in Python and uses the pyTelegramBotAPI library.
 
-## How to use
+### How to use
 Start conversation with **@pl_air_bot** on telegram
 
 #### Available commands:
@@ -23,7 +23,7 @@ Start conversation with **@pl_air_bot** on telegram
 
     Share Location: Sends the current location to get air quality measurements from the closest station.
 
-## Run by yourself
+### Run by yourself
 
 #### Obtain a Telegram bot authentication token at https://core.telegram.org/bots
 
