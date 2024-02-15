@@ -46,9 +46,23 @@ windows powershell:
 #### Run the script.
     python ./bot.py  
 
+#### Optional proxy use
+If you have trouble connecting from your IP, you can use a [scrapeops proxy](https://scrapeops.io/docs/intro/). Set the proxy api key as an environment variable, the application will automatically use the proxy if TELEGRAM_BOT_PROXY_API_KEY env is present.
+
+linux bash:
+
+    export TELEGRAM_BOT_PROXY_API_KEY=your-api-key
+windows powershell:
+
+    $env:TELEGRAM_BOT_PROXY_API_KEY = "your-api-key"
+
 ### Docker Image
 You can download docker image from github packages or build your own using dockerfile form repository.
 
 When you have image, you need to pass TELEGRAM_BOT_API_KEY as environment variable.
 
     docker run -e TELEGRAM_BOT_API_KEY=your-api-key yourContainerName
+
+proxy api key optionally
+
+    docker run -e TELEGRAM_BOT_API_KEY=your-api-key -e TELEGRAM_BOT_PROXY_API_KEY=your-api-key yourContainerName
