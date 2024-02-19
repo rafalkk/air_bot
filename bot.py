@@ -16,7 +16,12 @@ USE_PROXY = False
 
 # Environmental variables required to run bot
 TELEGRAM_API_KEY = os.environ.get("TELEGRAM_BOT_API_KEY")
-PROXY_API_KEY = os.environ.get("PROXY_API_KEY")
+PROXY_API_KEY = os.environ.get("TELEGRAM_BOT_PROXY_API_KEY")
+
+# Check if the Proxy Api Key environmental variable is set
+if 'TELEGRAM_BOT_PROXY_API_KEY' in os.environ:
+    USE_PROXY = True
+print(f'proxy is used: {USE_PROXY}')
 
 # Create a Telebot instance
 bot = telebot.TeleBot(TELEGRAM_API_KEY)
@@ -445,7 +450,7 @@ def handle_location(message):
                 f"Distance: {closest_station_distance} km\n"
                 f"<pre>{msg_string_format(readings)}</pre>"
             )
-            
+
             bot.reply_to(
                 message,
                 html_message, parse_mode='HTML')
