@@ -78,7 +78,7 @@ def msg_string_format(list):
     
     raw_string = ""
     max_key_length = max(len(dict["key"]) for dict in list)
-    max_value_length = max(len(str(dict["value"])) for dict in list)
+    max_value_length = max(len(str(round(dict["value"],1))) for dict in list)
 
     for dict in list:
         key = dict["key"]
