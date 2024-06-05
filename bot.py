@@ -456,6 +456,35 @@ def handle_location(message):
                 html_message, parse_mode='HTML')
 
 
+@bot.message_handler(commands=["allx"])
+def all(message):
+
+    dict = {
+        "Widuchowa" : "air 961",
+        "Szczecinek, ul. Przemysłowa" : "air 983",
+        "Kołobrzeg, ul. Żółkiewskiego" : "air 10934"
+
+    }
+
+
+    # Creating an inline keyboard
+    keyboard = telebot.types.InlineKeyboardMarkup()
+    
+    # Creating an inline keyboard button with a predefined message
+    for item in dict:
+
+        button = telebot.types.InlineKeyboardButton(text=f'{item}', callback_data=dict[item])
+        keyboard.add(button)
+    
+    
+    # Sending a message with the inline keyboard
+    bot.send_message(message.chat.id, "Press the button to send a predefined message to the bot.", reply_markup=keyboard)
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_query(call):
+        bot.send_message(call.message.chat.id, f'{call.data}')
+
+
 # If all handles above do not fit, help_message will be displayed.
 @bot.message_handler()
 def start(message):
