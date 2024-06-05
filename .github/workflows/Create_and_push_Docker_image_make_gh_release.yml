@@ -41,9 +41,14 @@ jobs:
       # This step uses [docker/metadata-action](https://github.com/docker/metadata-action#about) to extract tags and labels.
       - name: Extract metadata (tags, labels) for Docker
         id: metadata
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        uses: docker/metadata-action@v5.5.1
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      # Lowering image name using Bash Shell Parameter Expansion
+      - name: Lowercase image name
+        run: |
+            echo "IMAGE_NAME_LOWERCASE=${IMAGE_NAME@L}" >> $GITHUB_ENV
           
       # This step uses the `docker/build-push-action` action to build the image, based on your repository's `Dockerfile`. If the build succeeds, it pushes the image to GitHub Packages.
       # It uses the `tags` and `labels` parameters to tag and label the image with the output from the "meta" step.
@@ -53,7 +58,7 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ steps.metadata.outputs.tags }}, ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          tags: ${{ steps.metadata.outputs.tags }}, ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWERCASE }}:latest
           labels: ${{ steps.metadata.outputs.labels }}
 
       - name: Create GitHub release
