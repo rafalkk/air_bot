@@ -3,6 +3,10 @@ import requests
 from geopy import distance
 import logging
 import logging.handlers
+import locale
+
+# Set the locale to Polish
+locale.setlocale(locale.LC_ALL, 'pl_PL.UTF-8')
 
 # pyTelegramBotAPI
 import telebot
@@ -252,6 +256,7 @@ def start(message):
 
 
 help_message = "/all - list ids and names of all available stations\n\n\
+/allx - list of interactive buttons with measurement stations in alphabetical order \n\n\
 type 'air id' - get air measurement from the given station id; e.g.: 'air 10955'\n\n\
 type 'loc latitude longitude' - get air measurement from station closest to given coordinates; e.g.: 'loc 54.35 18.6667'\n\n\
 share location - get air measurement from station closest to shared location\n\n\
@@ -459,30 +464,72 @@ def handle_location(message):
 @bot.message_handler(commands=["allx"])
 def all(message):
 
-    dict = {
-        "Widuchowa" : "air 961",
-        "Szczecinek, ul. Przemysłowa" : "air 983",
-        "Kołobrzeg, ul. Żółkiewskiego" : "air 10934"
+    all = gios_get_all()
+    # Sort in alphabetical order using locale languge setting.
+    sorted_all = (sorted(all, key=lambda x: locale.strxfrm(x["stationName"])))
 
-    }
+    # Create an empty list to store the keyboards.
+    keyboards = []
 
+    # Create a keyboard every 99 buttons.
+    for i in range(0, len(all), 99):
+        keyboard = telebot.types.InlineKeyboardMarkup()
 
-    # Creating an inline keyboard
-    keyboard = telebot.types.InlineKeyboardMarkup()
-    
-    # Creating an inline keyboard button with a predefined message
-    for item in dict:
+        # Create 99 buttons for keyboard.
+        for station in sorted_all[i:i+99]:
+            button = telebot.types.InlineKeyboardButton(text=f'{station["stationName"]}', callback_data=f'air {station["id"]}')
+            keyboard.add(button)
 
-        button = telebot.types.InlineKeyboardButton(text=f'{item}', callback_data=dict[item])
-        keyboard.add(button)
-    
-    
-    # Sending a message with the inline keyboard
-    bot.send_message(message.chat.id, "Press the button to send a predefined message to the bot.", reply_markup=keyboard)
+        # Add the keyboard to the list.
+        keyboards.append(keyboard)
+
+    # Send keyboard in parts.
+    for index, keyboard in enumerate(keyboards):
+        bot.send_message(message.chat.id, f"Press the button to get measures. Part {index+1}/{len(keyboards)}.", reply_markup=keyboard)
+
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):
-        bot.send_message(call.message.chat.id, f'{call.data}')
+    # Extract the command from the callback data
+    command = call.data
+    chat_id = call.message.chat.id
+
+    bot.send_message(chat_id, f'Executing command: {call.data}')
+
+    id = command.split()[1]
+
+    response = gios_get_air(id)
+   
+    # Check what was returned by gios_get_air(id), if it is an ValueError send an error message.
+    if isinstance(response, ValueError):
+        bot.send_message(chat_id, f"Wrong id.")
+    
+    elif isinstance(response, requests.exceptions.RequestException):
+        bot.send_message(chat_id, f"Request problem occurred. Please try again later.")
+    
+    elif isinstance(response, Exception):
+        bot.send_message(chat_id, f"Unkown problem occurred during the process.")
+
+    # API returns empty list if ID is invalid 
+    elif isinstance(response, list) and not all:
+        bot.send_message(chat_id, "List is empty, please try again later.")
+
+    else:
+        readings = response[0]
+        station_name = response[1]
+
+        # If list of readings is empty send error message.
+        if not readings:
+            bot.send_message(chat_id, "Redings are empty.")
+        # Send message with formatted readings.
+        else:
+            html_message = (
+                f"{station_name}\n"
+                f"<pre>{msg_string_format(readings)}</pre>"
+            )
+
+            bot.send_message(chat_id,
+                html_message, parse_mode='HTML')
 
 
 # If all handles above do not fit, help_message will be displayed.
