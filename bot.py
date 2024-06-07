@@ -12,7 +12,7 @@ locale.setlocale(locale.LC_ALL, 'pl_PL.UTF-8')
 import telebot
 
 # REMEBER TO UPDATE VERSION
-version = "1.0.2"
+version = "1.1"
 # REMEBER TO UPDATE VERSION
 
 # Global variable to control proxy usage
