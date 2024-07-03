@@ -3,6 +3,6 @@
 
 
 # For local testing only
-/local_only
+/.local_only
 
 /logs
